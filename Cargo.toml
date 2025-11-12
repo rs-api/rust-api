@@ -8,6 +8,8 @@ members = [
     "examples/file-serving",
     "examples/middleware-test",
     "examples/middleware-composition",
+    "examples/extensions-demo",
+    "examples/error-handlers",
 ]
 resolver = "2"
 

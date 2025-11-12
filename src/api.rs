@@ -18,12 +18,13 @@ use hyper_util::rt::TokioIo;
 use tokio::net::TcpListener;
 
 use crate::{
-    Error, Handler, IntoRes, Middleware, Req, Res, Result, Router, handler::IntoHandler,
-    middleware::FnMiddleware,
+    Error, ErrorHandler, Handler, IntoRes, Middleware, Req, Res, Result, Router,
+    handler::IntoHandler, middleware::FnMiddleware,
 };
 
 type BoxedHandler<S> = Arc<dyn Handler<S>>;
 type BoxedMiddleware<S> = Arc<dyn Middleware<S>>;
+type BoxedErrorHandler = Arc<dyn ErrorHandler>;
 
 /// Main application
 pub struct RustApi<S = ()> {
@@ -31,6 +32,7 @@ pub struct RustApi<S = ()> {
     middlewares: Vec<BoxedMiddleware<S>>,
     state: Option<Arc<S>>,
     router: Option<matchit::Router<(BoxedHandler<S>, Vec<BoxedMiddleware<S>>)>>,
+    error_handler: Option<BoxedErrorHandler>,
 }
 
 impl RustApi<()> {
@@ -41,6 +43,7 @@ impl RustApi<()> {
             middlewares: Vec::new(),
             state: Some(Arc::new(())),
             router: None,
+            error_handler: None,
         }
     }
 }
@@ -53,7 +56,26 @@ impl<S: Send + Sync + 'static> RustApi<S> {
             middlewares: Vec::new(),
             state: Some(Arc::new(state)),
             router: None,
+            error_handler: None,
         }
+    }
+
+    /// Set a custom error handler
+    ///
+    /// The error handler controls how errors are converted into HTTP responses.
+    ///
+    /// # Example
+    ///
+    /// ```rust,ignore
+    /// use rust_api::prelude::*;
+    ///
+    /// let app = RustApi::new()
+    ///     .error_handler(JsonErrorHandler)
+    ///     .get("/", handler);
+    /// ```
+    pub fn error_handler<H: ErrorHandler>(mut self, handler: H) -> Self {
+        self.error_handler = Some(Arc::new(handler));
+        self
     }
 
     /// Add global middleware
@@ -208,6 +230,11 @@ impl<S: Send + Sync + 'static> RustApi<S> {
                     }
                     rust_req.set_path_params(params);
 
+                    // Store error handler in extensions if available
+                    if let Some(ref error_handler) = self.error_handler {
+                        rust_req.extensions_mut().insert(Arc::clone(error_handler));
+                    }
+
                     let (handler, middlewares) = matched.value;
                     let state = match &self.state {
                         Some(s) => Arc::clone(s),
@@ -288,6 +315,7 @@ where
             middlewares: Vec::new(),
             state: None,
             router: None,
+            error_handler: None,
         }
     }
 }

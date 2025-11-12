@@ -8,6 +8,7 @@ use http_body_util::BodyExt;
 use hyper::{Method, Request, Uri, body::Incoming, header};
 use std::collections::HashMap;
 
+use crate::extensions::Extensions;
 use crate::{Error, Result};
 
 static EMPTY_BYTES: Bytes = Bytes::new();
@@ -17,6 +18,7 @@ pub struct Req {
     inner: Request<Incoming>,
     path_params: HashMap<String, String>,
     body_bytes: Option<Bytes>,
+    extensions: Extensions,
 }
 
 impl Req {
@@ -26,6 +28,7 @@ impl Req {
             inner,
             path_params: HashMap::new(),
             body_bytes: None,
+            extensions: Extensions::new(),
         }
     }
 
@@ -124,5 +127,21 @@ impl Req {
 
         self.body_bytes = Some(collected.to_bytes());
         Ok(self)
+    }
+
+    /// Get a reference to the request extensions
+    ///
+    /// Extensions allow you to store arbitrary data that can be accessed
+    /// by type throughout the request lifecycle.
+    pub fn extensions(&self) -> &Extensions {
+        &self.extensions
+    }
+
+    /// Get a mutable reference to the request extensions
+    ///
+    /// Extensions allow you to store arbitrary data that can be accessed
+    /// by type throughout the request lifecycle.
+    pub fn extensions_mut(&mut self) -> &mut Extensions {
+        &mut self.extensions
     }
 }

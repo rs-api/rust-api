@@ -35,6 +35,8 @@
 
 mod api;
 mod error;
+pub mod error_handler;
+pub mod extensions;
 pub mod extractors;
 mod handler;
 mod into_res;
@@ -48,6 +50,8 @@ mod router;
 // Re-exports
 pub use api::RustApi;
 pub use error::{Error, Result};
+pub use error_handler::{DefaultErrorHandler, ErrorHandler, FnErrorHandler, JsonErrorHandler};
+pub use extensions::Extensions;
 pub use extractors::{Form, FromRequest, Json, Path, Query, State};
 pub use handler::{FnHandler, FnHandler1, FnHandler2, FnHandler3, Handler};
 pub use into_res::IntoRes;
@@ -60,5 +64,8 @@ pub use router::Router;
 /// Prelude module for convenient imports
 pub mod prelude {
     pub use crate::extractors::{Form, FromRequest, Json, Path, Query, State};
-    pub use crate::{Error, Handler, IntoRes, Middleware, Next, Req, Res, Result, Router, RustApi};
+    pub use crate::{
+        DefaultErrorHandler, Error, ErrorHandler, Extensions, FnErrorHandler, Handler, IntoRes,
+        JsonErrorHandler, Middleware, Next, Req, Res, Result, Router, RustApi,
+    };
 }

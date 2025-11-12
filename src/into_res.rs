@@ -46,20 +46,10 @@ impl<T: IntoRes> IntoRes for Result<T, Error> {
 
 impl IntoRes for Error {
     fn into_res(self) -> Res {
-        match self {
-            Error::Status(code, Some(msg)) => Res::builder()
-                .status(code)
-                .text(format!("Error {}: {}", code, msg)),
-            Error::Status(code, None) => Res::status(code),
-            Error::Json(e) => Res::builder()
-                .status(400)
-                .text(format!("JSON error: {}", e)),
-            Error::Hyper(e) => Res::builder()
-                .status(500)
-                .text(format!("HTTP error: {}", e)),
-            Error::Io(e) => Res::builder().status(500).text(format!("IO error: {}", e)),
-            Error::Custom(msg) => Res::builder().status(500).text(msg),
-        }
+        // Use DefaultErrorHandler for now
+        // The actual error handler will be applied in the handler execution
+        use crate::error_handler::{DefaultErrorHandler, ErrorHandler};
+        DefaultErrorHandler.handle(self)
     }
 }
 
