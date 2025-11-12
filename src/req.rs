@@ -5,7 +5,11 @@
 
 use bytes::Bytes;
 use http_body_util::BodyExt;
-use hyper::{Method, Request, Uri, body::Incoming, header};
+use hyper::{
+    Method, Request, Uri,
+    body::{Body, Incoming},
+    header,
+};
 use std::collections::HashMap;
 
 use crate::{Error, Result};
@@ -108,16 +112,16 @@ impl Req {
         self.inner
     }
 
-    pub(crate) async fn consume_body(mut self) -> Result<Self> {
-        // Default max body size: 64KB (following Hyper best practices)
-        const MAX_BODY_SIZE: u64 = 1024 * 64;
-
+    pub(crate) async fn consume_body(mut self, max_body_size: u64) -> Result<Self> {
         let body = self.inner.body_mut();
 
         // Check body size hint for protection
         let max = body.size_hint().upper().unwrap_or(u64::MAX);
-        if max > MAX_BODY_SIZE {
-            return Err(Error::payload_too_large("Request body too large"));
+        if max > max_body_size {
+            return Err(Error::payload_too_large(format!(
+                "Request body too large (max: {} bytes)",
+                max_body_size
+            )));
         }
 
         let collected = body

@@ -31,6 +31,7 @@ pub struct RustApi<S = ()> {
     middlewares: Vec<BoxedMiddleware<S>>,
     state: Option<Arc<S>>,
     router: Option<matchit::Router<(BoxedHandler<S>, Vec<BoxedMiddleware<S>>)>>,
+    max_body_size: u64,
 }
 
 impl RustApi<()> {
@@ -41,6 +42,7 @@ impl RustApi<()> {
             middlewares: Vec::new(),
             state: Some(Arc::new(())),
             router: None,
+            max_body_size: 64 * 1024, // 64KB default
         }
     }
 }
@@ -53,7 +55,22 @@ impl<S: Send + Sync + 'static> RustApi<S> {
             middlewares: Vec::new(),
             state: Some(Arc::new(state)),
             router: None,
+            max_body_size: 64 * 1024, // 64KB default
         }
+    }
+
+    /// Set maximum request body size in bytes
+    ///
+    /// Default is 64KB. Set to larger value for file uploads.
+    ///
+    /// # Example
+    /// ```ignore
+    /// let app = RustApi::new()
+    ///     .max_body_size(10 * 1024 * 1024); // 10MB for file uploads
+    /// ```
+    pub fn max_body_size(mut self, size: u64) -> Self {
+        self.max_body_size = size;
+        self
     }
 
     /// Add global middleware
@@ -207,13 +224,11 @@ impl<S: Send + Sync + 'static> RustApi<S> {
 
         let mut rust_req = Req::from_hyper(req);
 
-        rust_req = match rust_req.consume_body().await {
+        rust_req = match rust_req.consume_body(self.max_body_size).await {
             Ok(r) => r,
             Err(e) => {
                 use crate::IntoRes;
-                return Ok(Error::bad_request(format!("Failed to read body: {}", e))
-                    .into_res()
-                    .into_hyper());
+                return Ok(e.into_res().into_hyper());
             }
         };
 
@@ -263,6 +278,7 @@ where
             middlewares: Vec::new(),
             state: None,
             router: None,
+            max_body_size: 64 * 1024, // 64KB default
         }
     }
 }

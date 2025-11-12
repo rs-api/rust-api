@@ -38,11 +38,13 @@ async fn search(_req: Req) -> Res {
 #[tokio::main]
 async fn main() {
     let app = RustApi::new()
+        .max_body_size(1024 * 1024) // 1MB for forms (default is 64KB)
         .get("/", home)
         .post("/submit", submit)
         .get("/search", search);
 
     println!("Listening on http://127.0.0.1:3003");
+    println!("Max body size: 1MB");
     app.listen(([127, 0, 0, 1], 3003))
         .await
         .expect("Failed to start server");
