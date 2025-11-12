@@ -1,0 +1,16 @@
+[package]
+name = "rust-api"
+version = "0.0.1"
+edition = "2024"
+authors = ["Eric Kweyunga <maverickweyunga@gmail.com>"]
+description = "Fast and scalable web framework for Rust"
+license = "MIT"
+repository = "https://github.com/erickweyunga/rust-api"
+homepage = "https://github.com/erickweyunga/rust-api"
+documentation = "https://docs.rs/rust-api"
+keywords = ["web", "framework", "async", "rust", "http"]
+categories = ["web-programming", "network-programming"]
+readme = "README.md"
+rust-version = "1.85.0"
+
+[dependencies]
