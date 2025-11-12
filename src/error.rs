@@ -48,6 +48,11 @@ impl Error {
         Self::Status(404, Some(msg.into()))
     }
 
+    /// Create a 422 Unprocessable Entity error
+    pub fn unprocessable(msg: impl Into<String>) -> Self {
+        Self::Status(422, Some(msg.into()))
+    }
+
     /// Create a 500 Internal Server Error
     pub fn internal(msg: impl Into<String>) -> Self {
         Self::Status(500, Some(msg.into()))
