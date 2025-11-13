@@ -18,7 +18,7 @@ Add to your Cargo.toml:
 
 ```toml
 [dependencies]
-rust-api = "0.0.1"
+rust-api = "0.0.3"
 ```
 
 ## Philosophy
