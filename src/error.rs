@@ -41,6 +41,11 @@ impl Error {
         Self::Status(404, Some(msg.into()))
     }
 
+    /// Create 405 Method Not Allowed.
+    pub fn method_not_allowed(msg: impl Into<String>) -> Self {
+        Self::Status(405, Some(msg.into()))
+    }
+
     /// Create 413 Payload Too Large.
     pub fn payload_too_large(msg: impl Into<String>) -> Self {
         Self::Status(413, Some(msg.into()))

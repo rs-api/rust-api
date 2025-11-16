@@ -16,7 +16,7 @@ resolver = "2"
 
 [package]
 name = "rust-api"
-version = "0.0.3"
+version = "0.0.4"
 edition = "2024"
 authors = ["Eric Kweyunga <maverickweyunga@gmail.com>"]
 description = "Fast and scalable web framework for Rust"
