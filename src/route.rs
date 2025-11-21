@@ -1,4 +1,4 @@
-//! Per-route configuration.
+//! Per-route configuration with middleware support.
 
 use hyper::Method;
 use std::sync::Arc;
@@ -23,15 +23,16 @@ impl<S: Send + Sync + 'static> Route<S> {
         }
     }
 
-    /// Add middleware to route.
-    pub fn layer<M: Middleware<S>>(mut self, middleware: M) -> Self {
+    /// Add middleware to this route.
+    ///
+    /// Middleware is executed in registration order.
+    pub fn layer<M: Middleware<S>>(&mut self, middleware: M) {
         let mut mw = (*self.middlewares).clone();
         mw.push(Arc::new(middleware));
         self.middlewares = Arc::new(mw);
-        self
     }
 
-    /// Create GET route.
+    /// Create a GET route.
     pub fn get<H, T>(path: impl Into<String>, handler: H) -> Self
     where
         H: IntoHandler<S, T>,
@@ -39,7 +40,7 @@ impl<S: Send + Sync + 'static> Route<S> {
         Self::new(Method::GET, path.into(), handler.into_handler())
     }
 
-    /// Create POST route.
+    /// Create a POST route.
     pub fn post<H, T>(path: impl Into<String>, handler: H) -> Self
     where
         H: IntoHandler<S, T>,
@@ -47,7 +48,7 @@ impl<S: Send + Sync + 'static> Route<S> {
         Self::new(Method::POST, path.into(), handler.into_handler())
     }
 
-    /// Create PUT route.
+    /// Create a PUT route.
     pub fn put<H, T>(path: impl Into<String>, handler: H) -> Self
     where
         H: IntoHandler<S, T>,
@@ -55,7 +56,7 @@ impl<S: Send + Sync + 'static> Route<S> {
         Self::new(Method::PUT, path.into(), handler.into_handler())
     }
 
-    /// Create DELETE route.
+    /// Create a DELETE route.
     pub fn delete<H, T>(path: impl Into<String>, handler: H) -> Self
     where
         H: IntoHandler<S, T>,
@@ -63,7 +64,7 @@ impl<S: Send + Sync + 'static> Route<S> {
         Self::new(Method::DELETE, path.into(), handler.into_handler())
     }
 
-    /// Create PATCH route.
+    /// Create a PATCH route.
     pub fn patch<H, T>(path: impl Into<String>, handler: H) -> Self
     where
         H: IntoHandler<S, T>,

@@ -1,4 +1,4 @@
-//! Router nesting with shared middleware.
+//! Router for grouping routes with shared middleware.
 
 use hyper::Method;
 use std::sync::Arc;
@@ -9,7 +9,7 @@ type BoxedHandler<S> = Arc<dyn Handler<S>>;
 type BoxedMiddleware<S> = Arc<dyn Middleware<S>>;
 type SharedMiddlewares<S> = Arc<Vec<BoxedMiddleware<S>>>;
 
-/// Route grouping and nesting.
+/// Router for grouping routes with shared middleware.
 pub struct Router<S = ()> {
     routes: Vec<(Method, String, BoxedHandler<S>)>,
     middlewares: Vec<BoxedMiddleware<S>>,
@@ -17,7 +17,7 @@ pub struct Router<S = ()> {
 }
 
 impl<S: Send + Sync + 'static> Router<S> {
-    /// Create with pre-allocated capacity.
+    /// Create router with pre-allocated capacity.
     pub fn with_capacity(routes: usize, middlewares: usize) -> Self {
         Self {
             routes: Vec::with_capacity(routes),
@@ -26,82 +26,84 @@ impl<S: Send + Sync + 'static> Router<S> {
         }
     }
 
-    /// Create router.
+    /// Create a new router.
     pub fn new() -> Self {
         Self::with_capacity(10, 5)
     }
 
-    /// Register GET route.
-    pub fn get<H, T>(mut self, path: &str, handler: H) -> Self
+    /// Register a GET route.
+    pub fn get<H, T>(&mut self, path: &str, handler: H)
     where
         H: IntoHandler<S, T>,
     {
         self.routes
             .push((Method::GET, path.to_string(), handler.into_handler()));
-        self
     }
 
-    /// Register POST route.
-    pub fn post<H, T>(mut self, path: &str, handler: H) -> Self
+    /// Register a POST route.
+    pub fn post<H, T>(&mut self, path: &str, handler: H)
     where
         H: IntoHandler<S, T>,
     {
         self.routes
             .push((Method::POST, path.to_string(), handler.into_handler()));
-        self
     }
 
-    /// Register PUT route.
-    pub fn put<H, T>(mut self, path: &str, handler: H) -> Self
+    /// Register a PUT route.
+    pub fn put<H, T>(&mut self, path: &str, handler: H)
     where
         H: IntoHandler<S, T>,
     {
         self.routes
             .push((Method::PUT, path.to_string(), handler.into_handler()));
-        self
     }
 
-    /// Register DELETE route.
-    pub fn delete<H, T>(mut self, path: &str, handler: H) -> Self
+    /// Register a DELETE route.
+    pub fn delete<H, T>(&mut self, path: &str, handler: H)
     where
         H: IntoHandler<S, T>,
     {
         self.routes
             .push((Method::DELETE, path.to_string(), handler.into_handler()));
-        self
     }
 
-    /// Register PATCH route.
-    pub fn patch<H, T>(mut self, path: &str, handler: H) -> Self
+    /// Register a PATCH route.
+    pub fn patch<H, T>(&mut self, path: &str, handler: H)
     where
         H: IntoHandler<S, T>,
     {
         self.routes
             .push((Method::PATCH, path.to_string(), handler.into_handler()));
-        self
     }
 
-    /// Add middleware to router.
-    pub fn layer<M: crate::Middleware<S>>(mut self, middleware: M) -> Self {
+    /// Add middleware to this router.
+    ///
+    /// Middleware applies to all routes in this router, including nested routers.
+    pub fn layer<M: Middleware<S>>(&mut self, middleware: M) {
         self.middlewares.push(Arc::new(middleware));
-        self
     }
 
-    /// Mount nested router at prefix.
-    pub fn nest(mut self, prefix: &str, router: Router<S>) -> Self {
+    /// Mount a nested router at a prefix.
+    ///
+    /// Middleware from parent router is inherited by nested router.
+    pub fn nest(&mut self, prefix: &str, router: Router<S>) {
         self.nested.push((prefix.to_string(), router));
-        self
+    }
+
+    /// Get the number of routes in this router (excluding nested).
+    pub fn route_count(&self) -> usize {
+        self.routes.len()
     }
 
     pub(crate) fn flatten(
-        &self,
+        self,
         prefix: &str,
     ) -> Vec<(Method, String, BoxedHandler<S>, SharedMiddlewares<S>)> {
         self.flatten_with_shared("", prefix, None)
     }
 
     fn flatten_with_shared(
-        &self,
+        self,
         base_prefix: &str,
         prefix: &str,
         parent_middlewares: Option<&SharedMiddlewares<S>>,
@@ -127,7 +129,7 @@ impl<S: Send + Sync + 'static> Router<S> {
             Arc::new(self.middlewares.clone())
         };
 
-        for (method, path, handler) in &self.routes {
+        for (method, path, handler) in self.routes {
             let full_path = if prefix.is_empty() {
                 path.clone()
             } else {
@@ -137,12 +139,12 @@ impl<S: Send + Sync + 'static> Router<S> {
             flattened.push((
                 method.clone(),
                 full_path,
-                Arc::clone(handler),
+                Arc::clone(&handler),
                 Arc::clone(&combined_middlewares),
             ));
         }
 
-        for (nested_prefix, nested_router) in &self.nested {
+        for (nested_prefix, nested_router) in self.nested {
             let full_prefix = if prefix.is_empty() {
                 nested_prefix.clone()
             } else {

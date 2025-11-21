@@ -1,4 +1,4 @@
-//! HTTP application builder.
+//! HTTP application.
 
 use std::collections::HashMap;
 use std::convert::Infallible;
@@ -37,7 +37,7 @@ pub struct RustApi<S = ()> {
 }
 
 impl RustApi<()> {
-    /// Create application.
+    /// Create a new application with default state.
     pub fn new() -> Self {
         Self {
             routes: Vec::new(),
@@ -50,7 +50,9 @@ impl RustApi<()> {
 }
 
 impl<S: Send + Sync + 'static> RustApi<S> {
-    /// Create application with state.
+    /// Create application with custom state.
+    ///
+    /// State is shared across handlers via `Arc<S>` and accessed using `State<S>` extractor.
     pub fn with_state(state: S) -> Self {
         Self {
             routes: Vec::new(),
@@ -62,19 +64,19 @@ impl<S: Send + Sync + 'static> RustApi<S> {
     }
 
     /// Set custom error handler.
-    pub fn error_handler<H: ErrorHandler>(mut self, handler: H) -> Self {
+    pub fn set_error_handler<H: ErrorHandler>(&mut self, handler: H) {
         self.error_handler = Some(Arc::new(handler));
-        self
     }
 
     /// Add global middleware.
-    pub fn layer<M: crate::Middleware<S>>(mut self, middleware: M) -> Self {
+    ///
+    /// Middleware runs for all routes. Execution order matches registration order.
+    pub fn layer<M: Middleware<S>>(&mut self, middleware: M) {
         self.middlewares.push(Arc::new(middleware));
-        self
     }
 
-    /// Register GET route.
-    pub fn get<H, T>(mut self, path: &str, handler: H) -> Self
+    /// Register a GET route.
+    pub fn get<H, T>(&mut self, path: &str, handler: H)
     where
         H: IntoHandler<S, T>,
     {
@@ -84,11 +86,10 @@ impl<S: Send + Sync + 'static> RustApi<S> {
             handler.into_handler(),
             Arc::new(Vec::new()),
         ));
-        self
     }
 
-    /// Register POST route.
-    pub fn post<H, T>(mut self, path: &str, handler: H) -> Self
+    /// Register a POST route.
+    pub fn post<H, T>(&mut self, path: &str, handler: H)
     where
         H: IntoHandler<S, T>,
     {
@@ -98,11 +99,10 @@ impl<S: Send + Sync + 'static> RustApi<S> {
             handler.into_handler(),
             Arc::new(Vec::new()),
         ));
-        self
     }
 
-    /// Register PUT route.
-    pub fn put<H, T>(mut self, path: &str, handler: H) -> Self
+    /// Register a PUT route.
+    pub fn put<H, T>(&mut self, path: &str, handler: H)
     where
         H: IntoHandler<S, T>,
     {
@@ -112,11 +112,10 @@ impl<S: Send + Sync + 'static> RustApi<S> {
             handler.into_handler(),
             Arc::new(Vec::new()),
         ));
-        self
     }
 
-    /// Register DELETE route.
-    pub fn delete<H, T>(mut self, path: &str, handler: H) -> Self
+    /// Register a DELETE route.
+    pub fn delete<H, T>(&mut self, path: &str, handler: H)
     where
         H: IntoHandler<S, T>,
     {
@@ -126,11 +125,10 @@ impl<S: Send + Sync + 'static> RustApi<S> {
             handler.into_handler(),
             Arc::new(Vec::new()),
         ));
-        self
     }
 
-    /// Register PATCH route.
-    pub fn patch<H, T>(mut self, path: &str, handler: H) -> Self
+    /// Register a PATCH route.
+    pub fn patch<H, T>(&mut self, path: &str, handler: H)
     where
         H: IntoHandler<S, T>,
     {
@@ -140,26 +138,33 @@ impl<S: Send + Sync + 'static> RustApi<S> {
             handler.into_handler(),
             Arc::new(Vec::new()),
         ));
-        self
     }
 
-    /// Register route with per-route middleware.
-    pub fn route(mut self, route: crate::Route<S>) -> Self {
+    /// Register a route with per-route middleware.
+    pub fn route(&mut self, route: crate::Route<S>) {
         self.routes
             .push((route.method, route.path, route.handler, route.middlewares));
-        self
     }
 
-    /// Mount router at prefix.
-    pub fn nest(mut self, prefix: &str, router: Router<S>) -> Self {
+    /// Mount a router at a prefix.
+    pub fn nest(&mut self, prefix: &str, router: Router<S>) {
         let flattened = router.flatten(prefix);
         for (method, path, handler, middlewares) in flattened {
             self.routes.push((method, path, handler, middlewares));
         }
-        self
     }
 
-    fn build_router(mut self) -> Self {
+    /// Get the number of registered routes.
+    pub fn route_count(&self) -> usize {
+        self.routes.len()
+    }
+
+    /// Check if a route exists at the given path.
+    pub fn has_route(&self, path: &str) -> bool {
+        self.routes.iter().any(|(_, p, _, _)| p == path)
+    }
+
+    fn build_router(&mut self) {
         let mut router = matchit::Router::new();
         let mut path_methods: HashMap<String, MethodHandlers<S>> = HashMap::new();
 
@@ -189,48 +194,22 @@ impl<S: Send + Sync + 'static> RustApi<S> {
         }
 
         self.router = Some(router);
-        self
     }
 
-    /// Starts the HTTP server and listens for incoming connections.
+    /// Start the HTTP server.
     ///
-    /// The server implements graceful shutdown by:
-    /// - Listening for SIGTERM/SIGINT signals on Unix systems
-    /// - Listening for Ctrl+C on all platforms
-    /// - Stopping acceptance of new connections when a signal is received
-    /// - Allowing in-flight requests to complete before terminating
-    ///
-    /// Each connection is handled in its own task and monitored via a watch channel.
-    /// When shutdown is triggered, all active connections receive the signal and
-    /// complete their current requests before the server exits.
-    ///
-    /// # Arguments
-    ///
-    /// * `addr` - Socket address to bind to (e.g., `([127, 0, 0, 1], 3000)`)
-    ///
-    /// # Example
-    ///
-    /// ```no_run
-    /// # use rust_api::RustApi;
-    /// # #[tokio::main]
-    /// # async fn main() -> rust_api::Result<()> {
-    /// let app = RustApi::new()
-    ///     .get("/", |_| async { Ok(rust_api::Res::text("Hello")) });
-    ///
-    /// app.listen(([127, 0, 0, 1], 3000)).await
-    /// # }
-    /// ```
-    pub async fn listen(self, addr: impl Into<SocketAddr>) -> Result<()> {
+    /// Implements graceful shutdown on SIGTERM/SIGINT signals.
+    /// In-flight requests complete before the server terminates.
+    pub async fn listen(mut self, addr: impl Into<SocketAddr>) -> Result<()> {
         let addr = addr.into();
-        let app = Arc::new(self.build_router());
+        self.build_router();
+        let app = Arc::new(self);
         let listener = TcpListener::bind(addr).await?;
 
         let (shutdown_tx, mut shutdown_rx) = watch::channel(false);
 
         tokio::spawn(async move {
-            if let Err(e) = shutdown_signal().await {
-                eprintln!("Error waiting for shutdown signal: {:?}", e);
-            }
+            let _ = shutdown_signal().await;
             let _ = shutdown_tx.send(true);
         });
 
@@ -257,9 +236,7 @@ impl<S: Send + Sync + 'static> RustApi<S> {
 
                                 tokio::select! {
                                     result = conn.as_mut() => {
-                                        if let Err(err) = result {
-                                            eprintln!("Error serving connection: {:?}", err);
-                                        }
+                                        let _ = result;
                                     }
                                     _ = shutdown_rx.changed() => {
                                         conn.as_mut().graceful_shutdown();
@@ -268,9 +245,7 @@ impl<S: Send + Sync + 'static> RustApi<S> {
                                 }
                             });
                         }
-                        Err(e) => {
-                            eprintln!("Error accepting connection: {:?}", e);
-                        }
+                        Err(_) => {}
                     }
                 }
                 _ = shutdown_rx.changed() => {
@@ -409,12 +384,6 @@ where
     }
 }
 
-/// Waits for system shutdown signals.
-///
-/// On Unix: Listens for SIGTERM and SIGINT signals.
-/// On Windows: Listens for Ctrl+C via tokio::signal::ctrl_c.
-///
-/// Returns when any signal is received.
 async fn shutdown_signal() -> std::io::Result<()> {
     #[cfg(unix)]
     {

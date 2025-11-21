@@ -1,16 +1,12 @@
-//! Fast web framework for Rust.
-//!
-//! ## Quick Start
+//! Web framework for Rust.
 //!
 //! ```rust,no_run
-//! use rust_api::prelude::*;
+//! use rust_api::{RustApi, Res};
 //!
 //! #[tokio::main]
 //! async fn main() {
-//!     let app = RustApi::new()
-//!         .get("/", |_req: Req| async { Res::text("Hello") })
-//!         .get("/health", |_req: Req| async { Res::text("OK") });
-//!
+//!     let mut app = RustApi::new();
+//!     app.get("/", |_| async { Res::text("Hello") });
 //!     app.listen(([127, 0, 0, 1], 3000)).await.unwrap();
 //! }
 //! ```
