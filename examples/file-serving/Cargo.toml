@@ -1,0 +1,9 @@
+[package]
+name = "file-serving"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+rust-api = { path = "../.." }
+serde = "1.0.228"
+tokio = { version = "1", features = ["full"] }

@@ -1,7 +1,7 @@
 [workspace]
 members = [
     "."
-, "examples/streaming-demo", "examples/websocket-echo"]
+, "examples/streaming-demo", "examples/websocket-echo", "examples/file-serving"]
 resolver = "2"
 
 [package]
@@ -30,6 +30,7 @@ exclude = [
 # Async runtime
 tokio = { version = "1", features = ["full"] }
 tokio-stream = "0.1"
+tokio-util = { version = "0.7", features = ["io"] }
 
 # HTTP server
 hyper = { version = "1", features = ["full"] }

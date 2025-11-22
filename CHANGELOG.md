@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] - 2024-11-22
+
+### Added
+- **WebSocket Support**: Full RFC 6455 compliant WebSocket implementation
+  - `WebSocketUpgrade` extractor for handling upgrade requests
+  - `WebSocket` struct for bidirectional communication
+  - Support for Text, Binary, Ping, Pong, and Close messages
+  - Automatic frame encoding/decoding with masking
+  - Available via `websocket` feature flag
+  
+- **File Serving**: `Res::file()` for streaming files from disk
+  - Efficient streaming using `ReaderStream`
+  - Automatic 404 handling for missing files
+  - Manual MIME type control via `.header()`
+  - Zero dependencies for MIME detection
+
 ## [0.0.5] - 2024-11-21
 
 ### 🚨 BREAKING CHANGES

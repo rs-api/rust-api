@@ -7,8 +7,11 @@ use hyper::body::Frame;
 use hyper::{Response, StatusCode, header};
 use serde::Serialize;
 use std::future::Future;
+use std::path::Path;
+use tokio::fs::File;
 use tokio::sync::mpsc;
 use tokio_stream::wrappers::ReceiverStream;
+use tokio_util::io::ReaderStream;
 
 #[cfg(feature = "websocket")]
 use base64::{Engine as _, engine::general_purpose};
@@ -121,6 +124,35 @@ impl Res {
 
         Self {
             inner: Response::new(body),
+            #[cfg(feature = "websocket")]
+            ws_callback: None,
+        }
+    }
+
+    /// Stream file from disk. Returns 404 if not found.
+    ///
+    /// ```rust,no_run
+    /// Res::file("index.html").await.header("content-type", "text/html")
+    /// ```
+    pub async fn file(path: impl AsRef<Path>) -> Self {
+        let path = path.as_ref();
+
+        let file = match File::open(path).await {
+            Ok(f) => f,
+            Err(_) => {
+                return Self::builder().status(404).text("File not found");
+            }
+        };
+
+        let reader_stream = ReaderStream::new(file);
+        let stream_body =
+            HttpStreamBody::new(reader_stream.map_ok(Frame::data).map_err(Error::from));
+        let boxed_body = stream_body.boxed();
+
+        let res = Response::new(boxed_body);
+
+        Self {
+            inner: res,
             #[cfg(feature = "websocket")]
             ws_callback: None,
         }
@@ -263,7 +295,7 @@ impl Res {
 
     /// Add header.
     #[inline]
-    pub fn with_header(mut self, name: impl AsRef<str>, value: impl AsRef<str>) -> Self {
+    pub fn header(mut self, name: impl AsRef<str>, value: impl AsRef<str>) -> Self {
         if let (Ok(name), Ok(value)) = (
             header::HeaderName::from_bytes(name.as_ref().as_bytes()),
             header::HeaderValue::from_str(value.as_ref()),
