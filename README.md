@@ -18,7 +18,7 @@ All documentation is available at https://docs.rs/rust-api. If you're just getti
 ## Getting Help
 
 - Read the documentation at https://docs.rs/rust-api
-- Open an issue at https://github.com/erickweyunga/rust-api/issues
+- Open an issue at https://github.com/rs-api/rust-api/issues
 
 ## Contributing
 

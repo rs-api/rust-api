@@ -60,7 +60,7 @@ When building middleware or extensions:
 Clone the repository and run tests:
 
 ```bash
-git clone https://github.com/erickweyunga/rust-api
+git clone https://github.com/rs-api/rust-api
 cd rust-api
 cargo test
 ```
