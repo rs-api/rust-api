@@ -2,22 +2,18 @@
 
   <img src="static/rust-api.png" alt="Rust API" width="200"/>
 
-  <br/><br/>
+  <br/>
 
   <!-- Using HTML comments so GitHub doesn't break markdown inside div -->
-  <p>
-    <a href="https://crates.io/crates/rust-api">
-      <img src="https://img.shields.io/crates/v/rust-api.svg" alt="Crates.io">
-    </a>
-    <a href="https://docs.rs/rust-api">
-      <img src="https://docs.rs/rust-api/badge.svg" alt="Documentation">
-    </a>
-    <a href="https://opensource.org/licenses/MIT">
-      <img src="https://img.shields.io/badge/License-MIT%20OR%20Apache--2.0-blue.svg" alt="License">
-    </a>
-  </p>
-
-  <br/>
+  <a href="https://crates.io/crates/rust-api">
+    <img src="https://img.shields.io/crates/v/rust-api.svg" alt="Crates.io">
+  </a>
+  <a href="https://docs.rs/rust-api">
+    <img src="https://docs.rs/rust-api/badge.svg" alt="Documentation">
+  </a>
+  <a href="https://opensource.org/licenses/MIT">
+    <img src="https://img.shields.io/badge/License-MIT%20OR%20Apache--2.0-blue.svg" alt="License">
+  </a>
 
   <p style="max-width: 400px;">
     A fast and flexible web framework for Rust that encourages rapid development and clean, pragmatic design.
