@@ -1,4 +1,4 @@
-use rust_api::{Message, Req, Res, RustApi, WebSocket, WebSocketUpgrade};
+use foton::{Foton, Message, Req, Res, WebSocket, WebSocketUpgrade};
 
 async fn index(_req: Req) -> Res {
     Res::html(
@@ -65,7 +65,7 @@ async fn websocket_handler(ws: WebSocketUpgrade) -> Res {
 
 #[tokio::main]
 async fn main() {
-    let mut app = RustApi::new();
+    let mut app = Foton::new();
 
     app.get("/", index);
     app.get("/ws", websocket_handler);

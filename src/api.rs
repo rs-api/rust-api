@@ -29,7 +29,7 @@ type BoxedErrorHandler = Arc<dyn ErrorHandler>;
 type MethodHandlers<S> = HashMap<Method, (BoxedHandler<S>, SharedMiddlewares<S>)>;
 
 /// HTTP application.
-pub struct RustApi<S = ()> {
+pub struct Foton<S = ()> {
     routes: Vec<(Method, String, BoxedHandler<S>, SharedMiddlewares<S>)>,
     middlewares: Vec<BoxedMiddleware<S>>,
     state: Option<Arc<S>>,
@@ -45,7 +45,7 @@ pub struct RustApi<S = ()> {
     keep_alive: Option<Duration>,
 }
 
-impl RustApi<()> {
+impl Foton<()> {
     /// Create a new application with default state.
     pub fn new() -> Self {
         Self {
@@ -64,7 +64,7 @@ impl RustApi<()> {
     }
 }
 
-impl<S: Send + Sync + 'static> RustApi<S> {
+impl<S: Send + Sync + 'static> Foton<S> {
     /// Create application with custom state.
     ///
     /// State is shared across handlers via `Arc<S>` and accessed using `State<S>` extractor.
@@ -529,7 +529,7 @@ impl<S: Send + Sync + 'static> RustApi<S> {
     }
 }
 
-impl<S> Default for RustApi<S>
+impl<S> Default for Foton<S>
 where
     S: Send + Sync + 'static,
 {
@@ -555,13 +555,13 @@ where
 /// # Example
 ///
 /// ```rust
-/// use rust_api::app;
+/// use foton::app;
 ///
 /// let mut app = app();
 /// app.get("/", |_| async { "Hello" });
 /// ```
-pub fn app() -> RustApi {
-    RustApi::new()
+pub fn app() -> Foton {
+    Foton::new()
 }
 
 /// Create an HTTP application with custom state.
@@ -571,7 +571,7 @@ pub fn app() -> RustApi {
 /// # Example
 ///
 /// ```rust
-/// use rust_api::{app_with_state, State};
+/// use foton::{app_with_state, State};
 ///
 /// struct AppState {
 ///     db: Database,
@@ -582,8 +582,8 @@ pub fn app() -> RustApi {
 ///     // Access state.db
 /// });
 /// ```
-pub fn app_with_state<S: Send + Sync + 'static>(state: S) -> RustApi<S> {
-    RustApi::with_state(state)
+pub fn app_with_state<S: Send + Sync + 'static>(state: S) -> Foton<S> {
+    Foton::with_state(state)
 }
 
 async fn shutdown_signal() -> std::io::Result<()> {

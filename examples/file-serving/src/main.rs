@@ -1,4 +1,4 @@
-use rust_api::{Req, Res, RustApi};
+use foton::{Foton, Req, Res};
 
 async fn serve_html(_req: Req) -> Res {
     Res::file("examples/file-serving/static/index.html").await
@@ -6,7 +6,7 @@ async fn serve_html(_req: Req) -> Res {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let mut app = RustApi::new();
+    let mut app = Foton::new();
 
     app.get("/", serve_html);
 

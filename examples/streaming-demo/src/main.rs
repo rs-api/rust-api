@@ -1,4 +1,4 @@
-use rust_api::{Req, Res, RustApi, StreamSender};
+use foton::{Foton, Req, Res, StreamSender};
 use tokio::time::{Duration, sleep};
 
 async fn index(_req: Req) -> Res {
@@ -73,7 +73,7 @@ async fn sse_handler(_req: Req) -> Res {
 
 #[tokio::main]
 async fn main() {
-    let mut app = RustApi::new();
+    let mut app = Foton::new();
 
     app.get("/", index);
     app.get("/stream", stream_handler);

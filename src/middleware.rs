@@ -56,7 +56,7 @@ where
 /// Create middleware from function.
 ///
 /// ```rust
-/// use rust_api::{from_fn, Req, Res, Next};
+/// use foton::{from_fn, Req, Res, Next};
 /// use std::sync::Arc;
 ///
 /// let logging = from_fn(|req: Req, _state: Arc<()>, next: Next<()>| async move {

@@ -5,5 +5,5 @@ edition = "2024"
 publish = false
 
 [dependencies]
-rust-api = { path = "../..", features = ["websocket"] }
+foton = { path = "../..", features = ["websocket"] }
 tokio = { version = "1", features = ["full"] }

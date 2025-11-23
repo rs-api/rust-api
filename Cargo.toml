@@ -5,16 +5,16 @@ members = [
 resolver = "2"
 
 [package]
-name = "rust-api"
+name = "foton"
 version = "0.0.5"
 edition = "2024"
 authors = ["Eric Kweyunga <maverickweyunga@gmail.com>"]
-description = "Fast and scalable web framework for Rust"
+description = "Fast, minimal, Rust-native web framework"
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/rs-api/rust-api"
-homepage = "https://github.com/rs-api/rust-api"
-documentation = "https://docs.rs/rust-api"
-keywords = ["web", "framework", "async", "rust", "http"]
+repository = "https://github.com/erickweyunga/foton"
+homepage = "https://github.com/erickweyunga/foton"
+documentation = "https://docs.rs/foton"
+keywords = ["web", "framework", "async", "foton", "http"]
 categories = ["web-programming", "network-programming"]
 readme = "README.md"
 rust-version = "1.85.0"

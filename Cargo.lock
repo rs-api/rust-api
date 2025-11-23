@@ -103,7 +103,7 @@ checksum = "877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f"
 name = "file-serving"
 version = "0.1.0"
 dependencies = [
- "rust-api",
+ "foton",
  "serde",
  "tokio",
 ]
@@ -121,6 +121,31 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cb4cb245038516f5f85277875cdaa4f7d2c9a0fa0468de06ed190163b1581fcf"
 dependencies = [
  "percent-encoding",
+]
+
+[[package]]
+name = "foton"
+version = "0.0.5"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "base64",
+ "bytes",
+ "futures-util",
+ "http-body-util",
+ "hyper",
+ "hyper-util",
+ "matchit",
+ "paste",
+ "serde",
+ "serde_json",
+ "serde_urlencoded",
+ "sha1",
+ "tokio",
+ "tokio-stream",
+ "tokio-util",
+ "toml",
+ "uuid",
 ]
 
 [[package]]
@@ -457,31 +482,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rust-api"
-version = "0.0.5"
-dependencies = [
- "anyhow",
- "async-trait",
- "base64",
- "bytes",
- "futures-util",
- "http-body-util",
- "hyper",
- "hyper-util",
- "matchit",
- "paste",
- "serde",
- "serde_json",
- "serde_urlencoded",
- "sha1",
- "tokio",
- "tokio-stream",
- "tokio-util",
- "toml",
- "uuid",
-]
-
-[[package]]
 name = "rustversion"
 version = "1.0.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -609,7 +609,7 @@ dependencies = [
 name = "streaming-demo"
 version = "0.1.0"
 dependencies = [
- "rust-api",
+ "foton",
  "tokio",
 ]
 
@@ -844,7 +844,7 @@ dependencies = [
 name = "websocket-echo"
 version = "0.1.0"
 dependencies = [
- "rust-api",
+ "foton",
  "tokio",
 ]
 

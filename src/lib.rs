@@ -1,11 +1,11 @@
-//! Web framework for Rust.
+//! Foton - Fast, minimal, Rust-native web framework.
 //!
 //! ```rust,no_run
-//! use rust_api::{RustApi, Res};
+//! use foton::{Foton, Res};
 //!
 //! #[tokio::main]
 //! async fn main() {
-//!     let mut app = RustApi::new();
+//!     let mut app = Foton::new();
 //!     app.get("/", |_| async { Res::text("Hello") });
 //!     app.listen(([127, 0, 0, 1], 3000)).await.unwrap();
 //! }
@@ -31,7 +31,7 @@ mod router;
 #[cfg(feature = "websocket")]
 pub mod websocket;
 
-pub use api::{RustApi, app, app_with_state};
+pub use api::{Foton, app, app_with_state};
 pub use config::ServerConfig;
 pub use error::{Error, Result};
 pub use error_handler::ErrorHandler;
@@ -52,7 +52,7 @@ pub use websocket::{CloseFrame, Message, WebSocket, WebSocketHandler, WebSocketU
 pub mod prelude {
     pub use crate::extractors::{BodyBytes, Form, FromRequest, Headers, Json, Path, Query, State};
     pub use crate::{
-        Error, ErrorHandler, Extensions, Handler, IntoRes, Middleware, Next, Req, Res, Result,
-        Route, Router, RustApi, app, app_with_state, from_fn, middleware,
+        Error, ErrorHandler, Extensions, Foton, Handler, IntoRes, Middleware, Next, Req, Res,
+        Result, Route, Router, app, app_with_state, from_fn, middleware,
     };
 }
